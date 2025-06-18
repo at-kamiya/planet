@@ -1,0 +1,250 @@
+<!--
+  太陽系の惑星（太陽・水星・金星・地球・火星・木星・土星）を
+  実際の直径比でビジュアル表示するHTML。CSSのみで表現。
+  惑星の直径（km）：
+    太陽: 1,391,000
+    水星: 4,880
+    金星: 12,104
+    地球: 12,742
+    火星: 6,779
+    木星: 139,822
+    土星: 116,464
+  最大サイズを太陽=300pxとし、他は比率で算出。
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>太陽系の惑星軌道</title>
+  <style>
+    body {
+      background: #000014;
+      color: #fff;
+      font-family: 'Segoe UI', 'MS PGothic', sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    .space {
+      margin: 40px auto;
+      width: 100vw;
+      min-height: 600px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .planet {
+      display: inline-block;
+      vertical-align: bottom;
+      margin: 0 18px;
+      text-align: center;
+    }
+    .sun {
+      width: 80px; height: 80px;
+      background: radial-gradient(circle at 60% 40%, #fffbe0 0%, #ffe066 40%, #ff9900 80%, #ff3300 100%);
+      border-radius: 50%;
+      box-shadow: 0 0 40px 10px #ffb300, 0 0 0 4px #fffbe0 inset;
+      border: 2px solid #fffbe0;
+    }
+    .mercury {
+      width: 6px; height: 6px;
+      background: #bbb;
+      border-radius: 50%;
+      border: 1px solid #888;
+      box-shadow: 0 0 6px 1px #888;
+      margin-top: 139px;
+    }
+    .venus {
+      width: 12px; height: 12px;
+      background: #eec97d;
+      border-radius: 50%;
+      border: 1px solid #bfa76f;
+      box-shadow: 0 0 8px 2px #eec97d;
+      margin-top: 138px;
+    }
+    .earth {
+      width: 13px; height: 13px;
+      background: linear-gradient(135deg, #1e90ff 60%, #00ffcc 100%);
+      border-radius: 50%;
+      border: 1px solid #0a3d91;
+      box-shadow: 0 0 8px 2px #1e90ff;
+      margin-top: 138px;
+    }
+    .mars {
+      width: 8px; height: 8px;
+      background: #c1440e;
+      border-radius: 50%;
+      border: 1px solid #a02c00;
+      box-shadow: 0 0 6px 1px #c1440e;
+      margin-top: 139px;
+    }
+    .jupiter {
+      width: 32px; height: 32px;
+      background: linear-gradient(160deg, #f7e7b6 60%, #c2b280 100%);
+      border-radius: 50%;
+      border: 2px solid #bfa76f;
+      box-shadow: 0 0 24px 6px #f7e7b6;
+      margin-top: 125px;
+    }
+    .saturn {
+      width: 28px; height: 28px;
+      background: #f5e7b2;
+      border-radius: 50%;
+      border: 2px solid #bfa76f;
+      box-shadow: 0 0 20px 5px #f5e7b2;
+      margin-top: 127px;
+      position: relative;
+    }
+    .saturn::before {
+      content: '';
+      position: absolute;
+      left: -10px; top: 50%;
+      width: 45px; height: 7px;
+      background: repeating-linear-gradient(90deg, #e6d8a8 0 4px, #bfa76f 4px 8px);
+      border-radius: 50%;
+      transform: translateY(-50%) rotate(-15deg);
+      opacity: 0.7;
+      z-index: 0;
+    }
+    .label {
+      display: block;
+      margin-top: 8px;
+      font-size: 15px;
+      color: #fff;
+      text-shadow: 1px 1px 2px #000;
+    }
+    .orbit-space {
+      position: relative;
+      width: 700px;
+      height: 420px;
+      margin: 0 auto 30px auto;
+      background: #000014;
+      overflow: visible;
+    }
+    .orbit {
+      position: absolute;
+      border: 1px dashed #444;
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    .planet-anim {
+      position: absolute;
+      will-change: transform;
+      transition: none;
+    }
+    .label-anim {
+      position: absolute;
+      left: 50%;
+      top: 100%;
+      transform: translate(-50%, 8px);
+      font-size: 13px;
+      color: #fff;
+      text-shadow: 1px 1px 2px #000;
+      white-space: nowrap;
+    }
+    @media (min-width: 900px) {
+      .space { width: 900px; }
+    }
+  </style>
+  <script>
+    // 軌道アニメーション
+    window.addEventListener('DOMContentLoaded', function() {
+      var sunRadius = 40; // px (太陽の半径: デフォルメ)
+      var minOrbit = sunRadius + 40; // 最小軌道半径（太陽の外側から40px離す）
+      var planets = [
+        { name: 'mercury', color: '#bbb', size: 6, orbit: minOrbit + 10, period: 4 },
+        { name: 'venus', color: '#eec97d', size: 12, orbit: minOrbit + 40, period: 10 },
+        { name: 'earth', color: '#1e90ff', size: 13, orbit: minOrbit + 70, period: 16 },
+        { name: 'mars', color: '#c1440e', size: 8, orbit: minOrbit + 100, period: 30 },
+        { name: 'jupiter', color: '#f7e7b6', size: 32, orbit: minOrbit + 150, period: 60 },
+        { name: 'saturn', color: '#f5e7b2', size: 28, orbit: minOrbit + 200, period: 90 }
+      ];
+      var container = document.getElementById('orbit-space');
+      var centerX = container.offsetWidth / 2;
+      var centerY = container.offsetHeight / 2;
+      // 軌道円描画
+      planets.forEach(function(p) {
+        var o = document.createElement('div');
+        o.className = 'orbit';
+        o.style.width = (p.orbit*2)+'px';
+        o.style.height = (p.orbit*2)+'px';
+        o.style.left = (centerX-p.orbit)+'px';
+        o.style.top = (centerY-p.orbit)+'px';
+        o.style.zIndex = 1;
+        container.appendChild(o);
+      });
+      // 惑星本体
+      planets.forEach(function(p) {
+        var pl = document.createElement('div');
+        pl.className = 'planet-anim';
+        pl.style.width = p.size+'px';
+        pl.style.height = p.size+'px';
+        pl.style.background = p.color;
+        pl.style.borderRadius = '50%';
+        pl.style.border = '1px solid #888';
+        if(p.name==='earth') pl.style.background = 'linear-gradient(135deg, #1e90ff 60%, #00ffcc 100%)';
+        if(p.name==='jupiter') { pl.style.background = 'linear-gradient(160deg, #f7e7b6 60%, #c2b280 100%)'; pl.style.border='2px solid #bfa76f'; }
+        if(p.name==='saturn') { pl.style.background = '#f5e7b2'; pl.style.border='2px solid #bfa76f'; }
+        pl.id = 'anim-'+p.name;
+        pl.style.zIndex = 3;
+        container.appendChild(pl);
+        // ラベル
+        var label = document.createElement('div');
+        label.className = 'label-anim';
+        label.innerText = p.name==='mercury'?'水星':p.name==='venus'?'金星':p.name==='earth'?'地球':p.name==='mars'?'火星':p.name==='jupiter'?'木星':'土星';
+        pl.appendChild(label);
+      });
+      // 土星の環
+      var saturn = document.getElementById('anim-saturn');
+      if(saturn) {
+        var ring = document.createElement('div');
+        ring.style.position = 'absolute';
+        ring.style.left = '-10px';
+        ring.style.top = (0.5*planets[5].size-3)+'px';
+        ring.style.width = '45px';
+        ring.style.height = '7px';
+        ring.style.background = 'repeating-linear-gradient(90deg, #e6d8a8 0 4px, #bfa76f 4px 8px)';
+        ring.style.borderRadius = '50%';
+        ring.style.transform = 'rotate(-15deg)';
+        ring.style.opacity = '0.7';
+        saturn.appendChild(ring);
+      }
+      // アニメーション
+      function animate() {
+        var t = Date.now()/1000;
+        planets.forEach(function(p,i){
+          var theta = (t/p.period)*2*Math.PI;
+          var x = centerX + p.orbit*Math.cos(theta) - p.size/2;
+          var y = centerY + p.orbit*Math.sin(theta) - p.size/2;
+          var pl = document.getElementById('anim-'+p.name);
+          if(pl) {
+            pl.style.left = x+'px';
+            pl.style.top = y+'px';
+          }
+        });
+        requestAnimationFrame(animate);
+      }
+      animate();
+    });
+  </script>
+</head>
+<body>
+  <h1 style="color:#ffe066; text-shadow:2px 2px 8px #ff9900,0 0 8px #fff; font-size:2.2em; margin-top:30px;">太陽系の惑星軌道</h1>
+  <div id="orbit-space" class="orbit-space">
+    <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:80px; height:80px; z-index:2;">
+      <span class="sun" style="display:block; width:80px; height:80px;"></span>
+      <span class="label" style="position:absolute; left:50%; top:100%; transform:translate(-50%,8px);">太陽</span>
+    </div>
+  </div>
+  <div class="space">
+    <span class="planet"><span class="sun"></span><span class="label">太陽</span></span>
+    <span class="planet"><span class="mercury"></span><span class="label">水星</span></span>
+    <span class="planet"><span class="venus"></span><span class="label">金星</span></span>
+    <span class="planet"><span class="earth"></span><span class="label">地球</span></span>
+    <span class="planet"><span class="mars"></span><span class="label">火星</span></span>
+    <span class="planet"><span class="jupiter"></span><span class="label">木星</span></span>
+    <span class="planet"><span class="saturn"></span><span class="label">土星</span></span>
+  </div>
+  <div style="color:#aaa; font-size:13px; margin-top:30px;">※ 惑星の大きさは直径比を元にCSSで再現しています（太陽=300px基準）。<br>小さい惑星は見やすいように1px未満は1pxに補正しています。</div>
+</body>
+</html>
